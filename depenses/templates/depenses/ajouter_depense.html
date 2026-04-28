@@ -1,0 +1,257 @@
+{% extends 'depenses/base.html' %}
+{% load django_bootstrap5 %}
+{% load static %}
+
+{% block content %}
+<style>
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .page-container {
+        animation: fadeInUp 0.5s ease-out;
+    }
+    
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        padding: 20px 25px;
+        margin-bottom: 25px;
+        color: white;
+    }
+    
+    .page-header h2 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 600;
+    }
+    
+    .page-header h2 i {
+        margin-right: 10px;
+    }
+    
+    .form-card {
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+    
+    .form-card-header {
+        background: #f8f9fa;
+        padding: 20px 25px;
+        border-bottom: 2px solid #28a745;
+    }
+    
+    .form-card-header h3 {
+        margin: 0;
+        color: #333;
+        font-size: 20px;
+        font-weight: 600;
+    }
+    
+    .form-card-header h3 i {
+        margin-right: 10px;
+        color: #28a745;
+    }
+    
+    .form-card-body {
+        padding: 30px;
+    }
+    
+    /* Style des champs du formulaire */
+    .form-group {
+        margin-bottom: 20px;
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 8px;
+        display: block;
+    }
+    
+    .form-label i {
+        margin-right: 8px;
+        color: #28a745;
+    }
+    
+    .form-control, select, textarea {
+        border-radius: 10px;
+        border: 1px solid #e0e0e0;
+        padding: 10px 15px;
+        transition: all 0.3s ease;
+        width: 100%;
+    }
+    
+    .form-control:focus, select:focus, textarea:focus {
+        border-color: #28a745;
+        box-shadow: 0 0 0 3px rgba(40, 167, 69, 0.1);
+        outline: none;
+    }
+    
+    /* Message d'erreur */
+    .errorlist {
+        color: #dc3545;
+        list-style: none;
+        padding: 0;
+        margin-top: 5px;
+        font-size: 13px;
+    }
+    
+    /* Boutons */
+    .btn-action {
+        padding: 10px 25px;
+        border-radius: 10px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        margin-right: 10px;
+    }
+    
+    .btn-primary-custom {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        border: none;
+        color: white;
+    }
+    
+    .btn-primary-custom:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(40, 167, 69, 0.4);
+    }
+    
+    .btn-secondary-custom {
+        background: #6c757d;
+        border: none;
+        color: white;
+    }
+    
+    .btn-secondary-custom:hover {
+        transform: translateY(-2px);
+        background: #5a6268;
+    }
+    
+    /* Conseils rapides */
+    .tips-card {
+        background: linear-gradient(135deg, #e8f0fe 0%, #f0e7fe 100%);
+        border-radius: 10px;
+        padding: 15px;
+        margin-top: 20px;
+    }
+    
+    .tips-card i {
+        font-size: 20px;
+        color: #28a745;
+    }
+    
+    .tips-card .tips-title {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 10px;
+    }
+    
+    .tips-card .tips-list {
+        font-size: 13px;
+        color: #666;
+        margin: 0;
+        padding-left: 20px;
+    }
+    
+    @media (max-width: 768px) {
+        .form-card-body {
+            padding: 20px;
+        }
+        
+        .btn-action {
+            width: 100%;
+            margin-bottom: 10px;
+            margin-right: 0;
+        }
+        
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="page-container">
+    <!-- En-tête -->
+    <div class="page-header">
+        <h2>
+            <i class="bi bi-plus-circle"></i> Ajouter une dépense
+        </h2>
+    </div>
+    
+    <!-- Formulaire -->
+    <div class="form-card">
+        <div class="form-card-header">
+            <h3>
+                <i class="bi bi-cash-stack"></i> Nouvelle dépense
+            </h3>
+        </div>
+        <div class="form-card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                {% for field in form %}
+                <div class="form-group">
+                    <label for="{{ field.id_for_label }}" class="form-label">
+                        <i class="bi bi-{% if field.name == 'date' %}calendar3{% elif field.name == 'nom_prenom' %}person{% elif field.name == 'service' %}building{% elif field.name == 'motif_depense' %}file-text{% elif field.name == 'montant' %}cash{% else %}chat{% endif %}"></i>
+                        {{ field.label }}
+                    </label>
+                    
+                    <!-- Champ date avec valeur par défaut aujourd'hui -->
+                    {% if field.name == 'date' %}
+                        <input type="date" name="{{ field.name }}" id="{{ field.id_for_label }}" 
+                               class="form-control" value="{{ date_aujourdhui|date:'Y-m-d' }}">
+                    {% else %}
+                        {{ field }}
+                    {% endif %}
+                    
+                    {% if field.help_text %}
+                        <small class="text-muted d-block mt-1">{{ field.help_text }}</small>
+                    {% endif %}
+                    {% if field.errors %}
+                        <div class="errorlist">
+                            {% for error in field.errors %}
+                                {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+                
+                <div class="btn-group mt-4">
+                    <button type="submit" class="btn btn-action btn-primary-custom">
+                        <i class="bi bi-save"></i> Enregistrer la dépense
+                    </button>
+                    <a href="{% url 'dashboard' %}" class="btn btn-action btn-secondary-custom">
+                        <i class="bi bi-arrow-left"></i> Annuler
+                    </a>
+                </div>
+            </form>
+            
+            <!-- Conseils rapides -->
+            <div class="tips-card">
+                <div class="tips-title">
+                    <i class="bi bi-lightbulb"></i> Conseils pour bien remplir
+                </div>
+                <ul class="tips-list">
+                    <li>Indiquez toujours le nom complet de la personne</li>
+                    <li>Précisez le motif de la dépense avec des détails utiles</li>
+                    <li>Les remarques sont optionnelles mais recommandées</li>
+                    <li>Vérifiez le montant avant de soumettre</li>
+                    <li>Ajoutez un justificatif (PDF ou image) pour vos archives</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

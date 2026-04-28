@@ -1,0 +1,102 @@
+{% extends 'depenses/base.html' %}
+
+{% block content %}
+<style>
+    .justificatif-container {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .card-justificatif {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    
+    .info-depense {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .file-preview {
+        text-align: center;
+        margin-top: 20px;
+    }
+    
+    .file-preview img {
+        max-width: 100%;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .file-preview embed, .file-preview iframe {
+        width: 100%;
+        height: 600px;
+        border: none;
+        border-radius: 10px;
+    }
+</style>
+
+<div class="justificatif-container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="bi bi-file-earmark-text"></i> Justificatif de la dépense</h2>
+        <div>
+            <a href="{% url 'download_justificatif' depense.pk %}" class="btn btn-primary">
+                <i class="bi bi-download"></i> Télécharger
+            </a>
+            <a href="{% url 'liste_depenses' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Retour
+            </a>
+        </div>
+    </div>
+    
+    <div class="card-justificatif">
+        <div class="info-depense">
+            <div class="row">
+                <div class="col-md-3">
+                    <strong><i class="bi bi-calendar"></i> Date:</strong><br>
+                    {{ depense.date|date:"d/m/Y" }}
+                </div>
+                <div class="col-md-3">
+                    <strong><i class="bi bi-person"></i> Bénéficiaire:</strong><br>
+                    {{ depense.nom_prenom }}
+                </div>
+                <div class="col-md-3">
+                    <strong><i class="bi bi-tag"></i> Service:</strong><br>
+                    {{ depense.get_service_display }}
+                </div>
+                <div class="col-md-3">
+                    <strong><i class="bi bi-cash"></i> Montant:</strong><br>
+                    <span class="amount">{{ depense.montant|floatformat:0 }} FCFA</span>
+                </div>
+                <div class="col-md-12 mt-3">
+                    <strong><i class="bi bi-file-text"></i> Motif:</strong><br>
+                    {{ depense.motif_depense }}
+                </div>
+            </div>
+        </div>
+        
+        <div class="file-preview">
+            <h5><i class="bi bi-eye"></i> Aperçu du document</h5>
+            {% with file_ext=depense.justificatif.name|lower|slice:"-3:" %}
+                {% if file_ext == 'jpg' or file_ext == 'peg' or file_ext == 'png' %}
+                    <img src="{{ depense.justificatif.url }}" alt="Justificatif">
+                {% elif file_ext == 'pdf' %}
+                    <embed src="{{ depense.justificatif.url }}" type="application/pdf">
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="bi bi-file-earmark"></i>
+                        <p>Le fichier ne peut pas être affiché directement.</p>
+                        <a href="{% url 'download_justificatif' depense.pk %}" class="btn btn-primary">
+                            <i class="bi bi-download"></i> Télécharger le fichier
+                        </a>
+                    </div>
+                {% endif %}
+            {% endwith %}
+        </div>
+    </div>
+</div>
+{% endblock %}

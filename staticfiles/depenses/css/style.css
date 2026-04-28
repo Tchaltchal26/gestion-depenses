@@ -1,0 +1,104 @@
+/* Styles généraux */
+.sidebar {
+    min-height: 100vh;
+    background-color: #2c3e50;
+}
+
+.sidebar a {
+    color: white;
+    text-decoration: none;
+    padding: 10px;
+    display: block;
+}
+
+.sidebar a:hover {
+    background-color: #34495e;
+}
+
+.content {
+    padding: 20px;
+}
+
+.stat-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+/* Styles pour l'impression */
+@media print {
+    .sidebar, .btn-print, .btn, .no-print, .actions, .navbar, .btn-print-hide, .print-hide {
+        display: none !important;
+    }
+    .content {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+    }
+    .col-md-10 {
+        width: 100% !important;
+        margin-left: 0 !important;
+    }
+    .container-fluid {
+        padding: 0;
+    }
+    body {
+        padding: 0;
+        margin: 0;
+    }
+    .card {
+        border: 1px solid #ddd;
+        break-inside: avoid;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    th, td {
+        border: 1px solid #ddd;
+        padding: 8px;
+    }
+    .print-header {
+        display: block !important;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .print-footer {
+        display: block !important;
+        text-align: center;
+        margin-top: 20px;
+        font-size: 12px;
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+    }
+}
+
+.print-header, .print-footer {
+    display: none;
+}
+
+.btn-print {
+    background-color: #17a2b8;
+    color: white;
+    margin-right: 10px;
+}
+
+.btn-print:hover {
+    background-color: #138496;
+}
+
+/* Styles pour les tableaux */
+.table-sm th, .table-sm td {
+    vertical-align: middle;
+}
+
+.card-header h5 {
+    margin: 0;
+}
+
+.progress {
+    height: 20px;
+}

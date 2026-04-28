@@ -1,0 +1,432 @@
+{% extends 'depenses/base.html' %}
+{% load django_bootstrap5 %}
+{% load static %}
+
+{% block content %}
+<style>
+    /* Animation d'apparition */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .animate-fadeInUp {
+        animation: fadeInUp 0.6s ease-out;
+    }
+    
+    /* Cartes statistiques modernes */
+    .stat-card-modern {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 25px;
+        color: white;
+        margin-bottom: 25px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+    
+    .stat-card-modern::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+        background-size: 30px 30px;
+        opacity: 0.3;
+        transition: transform 0.6s ease;
+    }
+    
+    .stat-card-modern:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+    }
+    
+    .stat-card-modern:hover::before {
+        transform: scale(1.1);
+    }
+    
+    .stat-icon {
+        font-size: 48px;
+        margin-bottom: 15px;
+        opacity: 0.9;
+    }
+    
+    .stat-title {
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        opacity: 0.8;
+        margin-bottom: 10px;
+    }
+    
+    .stat-value {
+        font-size: 32px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    
+    .stat-subtitle {
+        font-size: 12px;
+        opacity: 0.7;
+    }
+    
+    /* Cartes de couleur différente */
+    .stat-card-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .stat-card-success {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    }
+    
+    .stat-card-warning {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+    
+    .stat-card-info {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+    
+    /* Section des actions rapides */
+    .quick-actions {
+        background: white;
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        height: 100%;
+        transition: all 0.3s ease;
+    }
+    
+    .quick-actions:hover {
+        box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+        transform: translateY(-3px);
+    }
+    
+    .quick-actions h5 {
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #667eea;
+        display: inline-block;
+    }
+    
+    .action-btn {
+        margin-bottom: 15px;
+        border-radius: 12px;
+        padding: 12px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        text-align: left;
+        border: none;
+    }
+    
+    .action-btn i {
+        margin-right: 10px;
+        font-size: 18px;
+    }
+    
+    .action-btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+    
+    .action-btn-primary:hover {
+        transform: translateX(5px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .action-btn-info {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        color: white;
+    }
+    
+    .action-btn-info:hover {
+        transform: translateX(5px);
+        box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+    }
+    
+    /* Dernières dépenses */
+    .recent-expenses {
+        background: white;
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        height: 100%;
+        transition: all 0.3s ease;
+    }
+    
+    .recent-expenses:hover {
+        box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+        transform: translateY(-3px);
+    }
+    
+    .recent-expenses h5 {
+        color: #333;
+        font-weight: 600;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #11998e;
+        display: inline-block;
+    }
+    
+    .expense-item {
+        padding: 12px 0;
+        border-bottom: 1px solid #f0f0f0;
+        transition: all 0.3s ease;
+    }
+    
+    .expense-item:hover {
+        background: #f8f9fa;
+        padding-left: 10px;
+        border-radius: 10px;
+    }
+    
+    .expense-date {
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 5px;
+    }
+    
+    .expense-date i {
+        margin-right: 5px;
+    }
+    
+    .expense-name {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 5px;
+    }
+    
+    .expense-description {
+        font-size: 13px;
+        color: #777;
+        margin-bottom: 5px;
+    }
+    
+    .expense-amount {
+        font-weight: bold;
+        color: #667eea;
+        font-size: 16px;
+    }
+    
+    .badge-service {
+        background: #e9ecef;
+        color: #495057;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        margin-left: 10px;
+    }
+    
+    /* Section bienvenue */
+    .welcome-section {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 20px;
+        padding: 30px;
+        color: white;
+        margin-bottom: 30px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .welcome-section::after {
+        content: '💰';
+        position: absolute;
+        bottom: -20px;
+        right: -20px;
+        font-size: 150px;
+        opacity: 0.1;
+        transform: rotate(-15deg);
+    }
+    
+    .welcome-title {
+        font-size: 28px;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+    
+    .welcome-text {
+        font-size: 14px;
+        opacity: 0.9;
+    }
+    
+    /* Aucune donnée */
+    .empty-state {
+        text-align: center;
+        padding: 40px;
+        color: #999;
+    }
+    
+    .empty-state i {
+        font-size: 60px;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+</style>
+
+<div class="animate-fadeInUp">
+    <!-- Section de bienvenue -->
+    <div class="welcome-section">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <div class="welcome-title">
+                    Bonjour, {{ user.username }} ! 👋
+                </div>
+                <div class="welcome-text">
+                    Bienvenue sur votre espace de gestion des dépenses. 
+                    Gérez efficacement vos finances et suivez vos dépenses en temps réel.
+                </div>
+            </div>
+            <div class="col-md-4 text-end">
+                <i class="bi bi-graph-up" style="font-size: 60px; opacity: 0.5;"></i>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Cartes statistiques -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="stat-card-modern stat-card-primary">
+                <div class="stat-icon">
+                    <i class="bi bi-wallet2"></i>
+                </div>
+                <div class="stat-title">Total général</div>
+                <div class="stat-value">{{ total_general|default:"0"|floatformat:0 }} <small style="font-size: 14px;">FCFA</small></div>
+                <div class="stat-subtitle">Toutes périodes confondues</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card-modern stat-card-success">
+                <div class="stat-icon">
+                    <i class="bi bi-calendar-month"></i>
+                </div>
+                <div class="stat-title">Ce mois-ci</div>
+                <div class="stat-value">{{ total_mois|default:"0"|floatformat:0 }} <small style="font-size: 14px;">FCFA</small></div>
+                <div class="stat-subtitle">{{ current_month }}</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card-modern stat-card-info">
+                <div class="stat-icon">
+                    <i class="bi bi-calendar-day"></i>
+                </div>
+                <div class="stat-title">Aujourd'hui</div>
+                <div class="stat-value">{{ total_jour|default:"0"|floatformat:0 }} <small style="font-size: 14px;">FCFA</small></div>
+                <div class="stat-subtitle">{{ today_date }}</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Actions rapides -->
+        <div class="col-md-5 mb-4">
+            <div class="quick-actions">
+                <h5><i class="bi bi-lightning-charge-fill"></i> Actions rapides</h5>
+                <a href="{% url 'ajouter_depense' %}" class="btn action-btn action-btn-primary w-100">
+                    <i class="bi bi-plus-circle"></i> Ajouter une dépense
+                </a>
+                <a href="{% url 'depenses_journalieres' %}" class="btn action-btn action-btn-info w-100">
+                    <i class="bi bi-eye"></i> Voir les dépenses du jour
+                </a>
+                <a href="{% url 'depenses_mensuelles' %}" class="btn action-btn action-btn-primary w-100">
+                    <i class="bi bi-graph-up"></i> Voir le rapport mensuel
+                </a>
+                <a href="{% url 'liste_depenses' %}?date={{ today }}" class="btn action-btn action-btn-info w-100">
+                    <i class="bi bi-search"></i> Rechercher des dépenses
+                </a>
+            </div>
+        </div>
+        
+        <!-- Dernières dépenses -->
+        <div class="col-md-7 mb-4">
+            <div class="recent-expenses">
+                <h5><i class="bi bi-clock-history"></i> Dernières dépenses</h5>
+                {% if dernieres_depenses %}
+                    {% for depense in dernieres_depenses %}
+                    <div class="expense-item">
+                        <div class="row align-items-center">
+                            <div class="col-md-4">
+                                <div class="expense-date">
+                                    <i class="bi bi-calendar3"></i> {{ depense.date|date:"d/m/Y" }}
+                                </div>
+                                <div class="expense-name">
+                                    {{ depense.nom_prenom }}
+                                    <span class="badge-service">{{ depense.get_service_display }}</span>
+                                </div>
+                            </div>
+                            <div class="col-md-5">
+                                <div class="expense-description">
+                                    <i class="bi bi-file-text"></i> {{ depense.motif_depense|truncatechars:40 }}
+                                </div>
+                            </div>
+                            <div class="col-md-3 text-end">
+                                <div class="expense-amount">
+                                    {{ depense.montant|floatformat:0 }} FCFA
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <i class="bi bi-inbox"></i>
+                        <p>Aucune dépense enregistrée</p>
+                        <a href="{% url 'liste_depenses' %}" class="btn btn-primary btn-sm">
+                            Ajouter votre première dépense
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Petit conseil du jour -->
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-info border-0" style="background: linear-gradient(135deg, #e0c3fc 0%, #f0e7fe 100%); border-radius: 15px;">
+                <div class="row align-items-center">
+                    <div class="col-md-1 text-center">
+                        <i class="bi bi-lightbulb-fill" style="font-size: 30px; color: #764ba2;"></i>
+                    </div>
+                    <div class="col-md-11">
+                        <strong>💡 Conseil du jour :</strong> 
+                        {% if total_mois > 2000000 %}
+                            Vos dépenses de ce mois dépassent 2 000 000 FCFA. Pensez à vérifier les postes de dépenses les plus importants.
+                        {% elif total_mois > 500000 %}
+                            Bonne gestion ! Continuez à suivre vos dépenses régulièrement.
+                        {% else %}
+                            Excellente maîtrise de vos dépenses ce mois-ci. Félicitations !
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Passer les variables JavaScript -->
+<script>
+    // Variables pour les animations supplémentaires
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animation des cartes au chargement
+        const cards = document.querySelectorAll('.stat-card-modern');
+        cards.forEach((card, index) => {
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 100);
+        });
+    });
+</script>
+{% endblock %}

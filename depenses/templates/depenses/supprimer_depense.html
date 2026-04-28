@@ -1,0 +1,43 @@
+{% extends 'depenses/base.html' %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header bg-danger text-white">
+        <h3>Confirmer la suppression</h3>
+    </div>
+    <div class="card-body">
+        <p>Êtes-vous sûr de vouloir supprimer la dépense suivante ?</p>
+        <table class="table table-bordered">
+            <tr>
+                <th>Date</th>
+                <td>{{ depense.date }}</td>
+            </tr>
+            <tr>
+                <th>Nom et prénom</th>
+                <td>{{ depense.nom_prenom }}</td>
+            </tr>
+            <tr>
+                <th>Service</th>
+                <td>{{ depense.get_service_display }}</td>
+            </tr>
+            <tr>
+                <th>Motif</th>
+                <td>{{ depense.motif_depense }}</td>
+            </tr>
+            <tr>
+                <th>Montant</th>
+                <td>{{ depense.montant }} FCFA</td>
+            </tr>
+            <tr>
+                <th>Remarque</th>
+                <td>{{ depense.remarque|default:"-" }}</td>
+            </tr>
+        </table>
+        <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Oui, supprimer</button>
+            <a href="{% url 'liste_depenses' %}" class="btn btn-secondary">Annuler</a>
+        </form>
+    </div>
+</div>
+{% endblock %}
