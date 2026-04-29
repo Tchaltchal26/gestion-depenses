@@ -17,6 +17,12 @@ from reportlab.lib.units import inch
 from reportlab.lib.enums import TA_CENTER
 import io
 
+
+def home(request):
+    """Page d'accueil publique"""
+    return render(request, 'depenses/home.html')
+
+
 # Authentification
 def register_view(request):
     if request.method == 'POST':
