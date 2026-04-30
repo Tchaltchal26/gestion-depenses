@@ -16,6 +16,7 @@ from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.lib.enums import TA_CENTER
 import io
+from django.contrib.admin.views.decorators import staff_member_required
 
 
 def home(request):
@@ -24,6 +25,8 @@ def home(request):
 
 
 # Authentification
+
+@staff_member_required
 def register_view(request):
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
@@ -37,6 +40,14 @@ def register_view(request):
     return render(request, 'depenses/register.html', {'form': form})
 
 def login_view(request):
+    # Si déjà connecté, rediriger directement
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+    
+    # Vider les anciens messages (comme le message de déconnexion)
+    storage = messages.get_messages(request)
+    storage.used = True
+    
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
@@ -53,7 +64,7 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     messages.info(request, "Vous avez été déconnecté.")
-    return redirect('login')
+    return redirect('home') 
 
 # Vues principales
 @login_required

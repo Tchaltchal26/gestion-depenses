@@ -1,25 +1,19 @@
-{% extends 'depenses/base_public.html' %}
+{% extends 'depenses/base.html' %}
 {% load static %}
 
-{% block content %}
-<div class="container mt-5">
+{% block auth_content %}
+<div class="container mt-5 pt-5">
     <div class="row justify-content-center">
-        <div class="col-md-8 text-center">
-            <div class="card shadow-lg border-0 rounded-4">
-                <div class="card-body p-5">
-                    <div class="mb-4">
-                        <i class="bi bi-wallet2" style="font-size: 80px; color: #667eea;"></i>
-                    </div>
-                    <h1 class="display-4 fw-bold mb-3">Clique Alkhoufra</h1>
-                    <p class="lead text-muted mb-4">Gestion des dépenses professionnelle</p>
-                    <p class="mb-4">Bienvenue sur votre application de gestion des dépenses. 
-                    Gérez facilement vos dépenses journalières, suivez vos budgets et optimisez vos finances.</p>
-                    <div class="d-grid gap-3 d-sm-flex justify-content-sm-center">
-                        <a href="{% url 'login' %}" class="btn btn-primary btn-lg px-4">
+        <div class="col-md-10 text-center">
+            <div class="card shadow-lg border-0 rounded-4 overflow-hidden">
+                <div class="card-body p-5" style="background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);">
+                    <i class="bi bi-wallet2" style="font-size: 80px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
+                    <h1 class="display-4 fw-bold mt-3" style="color: #2c3e50;">Clique Alkhoufra</h1>
+                    <p class="lead text-muted mb-4">Gestion professionnelle des dépenses</p>
+                    <p class="mb-4">Application sécurisée. Seuls les administrateurs peuvent créer des comptes.</p>
+                    <div class="d-flex gap-3 justify-content-center flex-wrap">
+                        <a href="{% url 'login' %}" class="btn btn-primary btn-lg px-4 rounded-pill">
                             <i class="bi bi-box-arrow-in-right"></i> Se connecter
-                        </a>
-                        <a href="{% url 'register' %}" class="btn btn-outline-secondary btn-lg px-4">
-                            <i class="bi bi-person-plus"></i> Créer un compte
                         </a>
                     </div>
                 </div>
@@ -31,27 +25,27 @@
         <div class="col-md-4">
             <div class="card h-100 border-0 shadow-sm text-center">
                 <div class="card-body">
-                    <i class="bi bi-receipt" style="font-size: 40px; color: #667eea;"></i>
+                    <i class="bi bi-receipt" style="font-size: 48px; color: #667eea;"></i>
                     <h5 class="card-title mt-3">Suivi des dépenses</h5>
-                    <p class="card-text text-muted">Enregistrez et suivez toutes vos dépenses en un seul endroit.</p>
+                    <p class="card-text text-muted">Enregistrez et catégorisez toutes vos dépenses</p>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
             <div class="card h-100 border-0 shadow-sm text-center">
                 <div class="card-body">
-                    <i class="bi bi-graph-up" style="font-size: 40px; color: #667eea;"></i>
+                    <i class="bi bi-graph-up" style="font-size: 48px; color: #667eea;"></i>
                     <h5 class="card-title mt-3">Statistiques</h5>
-                    <p class="card-text text-muted">Visualisez vos dépenses par mois et par catégorie.</p>
+                    <p class="card-text text-muted">Visualisez vos dépenses par période</p>
                 </div>
             </div>
         </div>
         <div class="col-md-4">
             <div class="card h-100 border-0 shadow-sm text-center">
                 <div class="card-body">
-                    <i class="bi bi-file-pdf" style="font-size: 40px; color: #667eea;"></i>
+                    <i class="bi bi-file-pdf" style="font-size: 48px; color: #667eea;"></i>
                     <h5 class="card-title mt-3">Export PDF</h5>
-                    <p class="card-text text-muted">Générez des rapports PDF pour vos archives.</p>
+                    <p class="card-text text-muted">Générez des rapports professionnels</p>
                 </div>
             </div>
         </div>
