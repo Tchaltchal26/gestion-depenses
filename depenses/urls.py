@@ -3,16 +3,16 @@ from . import views
 
 urlpatterns = [
     # Page d'accueil publique
-    path('', views.home, name='home'),
+    path('', views.login_view, name='login'),
     
     # Authentification
-    path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     # path('register/', views.register_view, name='register'),  # COMMENTÉ - Plus accessible au public
     
     # Vues principales (protégées)
     path('dashboard/', views.dashboard, name='dashboard'),
     path('liste/', views.liste_depenses, name='liste_depenses'),
+    path('bilan/', views.bilan, name='bilan'),
     path('ajouter/', views.ajouter_depense, name='ajouter_depense'),
     
     # Périodes

@@ -11,17 +11,26 @@ def upload_justificatif_path(instance, filename):
     return os.path.join('justificatifs', str(instance.nom_utilisateur.id), filename)
 
 class Depense(models.Model):
-    # Liste des services possibles
+    # Liste des services possibles - Version corrigée et organisée
     SERVICES = [
-        ('RESTAURATION', 'Restauration'),
-        ('TRANSPORT', 'Transport'),
-        ('HEBERGEMENT', 'Hébergement'),
-        ('DIVERTS', 'Divers'),
+        # Services médicaux
+        ('SERVICE_CLINIQUE', 'Service Clinique'),
+        ('LABORATOIRE', 'Laboratoire'),
+        ('CHIRURGIE_INFIRMERIE', 'Chirurgie et Infirmerie'),
+        ('CARBURANT', 'Carburant'),
+        ('MAINTENANCE', 'Maintenance'),
+        ('LOCATION', 'Location'),
+        ('CAMPUS_MEDECIN', 'Campus Médecin'),
+        ('TAXES', 'Taxes'),
+        ('SALAIRE', 'Salaire'),
+        ('RECEPTION', 'Réception'),
+        ('HYGIENE', 'Hygiène'),
+        ('AUTRES', 'Autres'),
     ]
     
     date = models.DateField(default=timezone.now)
     nom_prenom = models.CharField(max_length=200, verbose_name="Nom et prénom")
-    service = models.CharField(max_length=50, choices=SERVICES, default='DIVERTS')
+    service = models.CharField(max_length=50, choices=SERVICES, default='AUTRES')
     motif_depense = models.TextField(verbose_name="Motif de la dépense")
     montant = models.DecimalField(max_digits=10, decimal_places=2)
     remarque = models.TextField(blank=True, null=True)

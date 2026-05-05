@@ -1,0 +1,445 @@
+{% extends 'depenses/base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .page-container {
+        animation: fadeInUp 0.5s ease-out;
+    }
+    
+    /* Styles pour l'écran */
+    .page-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        padding: 20px 25px;
+        margin-bottom: 25px;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    
+    .page-header h2 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 600;
+    }
+    
+    .filter-card {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 25px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+    
+    .stats-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 25px;
+        color: white;
+        text-align: center;
+    }
+    
+    .stats-card .total {
+        font-size: 36px;
+        font-weight: bold;
+    }
+    
+    .table-container {
+        background: white;
+        border-radius: 15px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        overflow-x: auto;
+    }
+    
+    .custom-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .custom-table th, .custom-table td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #eef2f7;
+    }
+    
+    .custom-table th {
+        background: #f8f9fa;
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .custom-table tr:hover {
+        background: #f8f9fa;
+    }
+    
+    .progress-bar-custom {
+        height: 8px;
+        background: #e9ecef;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 10px;
+    }
+    
+    .badge-service {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 11px;
+        display: inline-block;
+    }
+    
+    .btn-custom {
+        border-radius: 10px;
+        padding: 8px 18px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-custom:hover {
+        transform: translateY(-2px);
+    }
+    
+    .filter-active {
+        margin-top: 15px;
+        padding: 10px 15px;
+        background: #e8f0fe;
+        border-radius: 10px;
+        font-size: 13px;
+        color: #667eea;
+    }
+    
+    .amount {
+        font-weight: 700;
+        color: #667eea;
+    }
+    
+    /* =============== STYLES D'IMPRESSION PROFESSIONNELLE =============== */
+    @media print {
+        /* Masquer tous les éléments non nécessaires */
+        .no-print, .filter-card, .page-header, .stats-card,
+        .btn-actions, .btn-custom, .btn {
+            display: none !important;
+        }
+        
+        /* Afficher l'en-tête d'impression */
+        .print-header {
+            display: block !important;
+            text-align: center;
+            margin-bottom: 25px;
+            padding: 10px;
+        }
+        
+        .print-header .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+        
+        .print-header .logo {
+            max-height: 70px;
+            width: auto;
+        }
+        
+        .print-header h1 {
+            font-size: 20pt;
+            margin: 0;
+            color: #2c3e50;
+        }
+        
+        .print-header .subtitle {
+            font-size: 11pt;
+            color: #666;
+        }
+        
+        .print-header .info {
+            font-size: 9pt;
+            color: #555;
+            margin-top: 10px;
+        }
+        
+        .print-header hr {
+            border: 0;
+            border-top: 2px solid #333;
+            margin: 10px 0;
+        }
+        
+        /* Tableau pleine page */
+        .table-container {
+            margin: 0 !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+            overflow-x: visible !important;
+        }
+        
+        .custom-table {
+            width: 100% !important;
+            border-collapse: collapse !important;
+            font-size: 9pt !important;
+        }
+        
+        .custom-table thead th {
+            background: #e9ecef !important;
+            color: #000 !important;
+            border: 1px solid #000 !important;
+            font-weight: bold !important;
+            padding: 8px !important;
+        }
+        
+        .custom-table tbody td {
+            border: 1px solid #ccc !important;
+            padding: 6px !important;
+        }
+        
+        .custom-table tfoot td {
+            border: 1px solid #ccc !important;
+        }
+        
+        .progress-bar-custom {
+            display: none;
+        }
+        
+        .badge-service {
+            background: #e9ecef !important;
+            color: #000 !important;
+            border: 1px solid #ccc;
+            padding: 2px 6px;
+        }
+        
+        .amount {
+            color: #000 !important;
+            font-weight: bold;
+        }
+        
+        /* Pied de page avec signature */
+        .print-footer {
+            display: block !important;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid #000;
+            font-size: 9pt;
+        }
+        
+        .print-footer .signature-line {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .print-footer .signature {
+            width: 250px;
+            text-align: center;
+        }
+        
+        .print-footer .signature-dash {
+            border-top: 1px solid #000;
+            margin-top: 30px;
+            padding-top: 5px;
+        }
+        
+        @page {
+            size: landscape;
+            margin: 1cm;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+        }
+    }
+    
+    .print-header, .print-footer {
+        display: none;
+    }
+</style>
+
+<div class="page-container">
+    <!-- En-tête pour l'impression -->
+    <div class="print-header">
+        <div class="logo-container">
+            <img src="{% static 'depenses/images/logo.jpg' %}" alt="Logo" class="logo">
+            <div>
+                <h1>CLIQUE ALKHOUFRA</h1>
+                <div class="subtitle">Gestion des dépenses - Bilan financier</div>
+            </div>
+        </div>
+        <div class="info">
+            Document généré le {% now "d/m/Y à H:i:s" %} par {{ user.username }}<br>
+            {% if filtre_actif == 'periode' %}
+                Période : {{ valeur_filtre }}
+            {% elif filtre_actif == 'annee' %}
+                Année : {{ valeur_filtre }}
+            {% elif filtre_actif == 'mois' %}
+                Période : {{ valeur_filtre }}
+            {% else %}
+                Toutes les périodes
+            {% endif %}
+        </div>
+        <hr>
+    </div>
+    
+    <!-- En-tête écran -->
+    <div class="page-header no-print">
+        <h2>
+            <i class="bi bi-pie-chart"></i> Bilan des dépenses
+        </h2>
+        <div class="btn-actions no-print">
+            <button onclick="window.print();" class="btn btn-light btn-custom">
+                <i class="bi bi-printer"></i> Imprimer
+            </button>
+        </div>
+    </div>
+    
+    <!-- Filtres écran -->
+    <div class="filter-card no-print">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Date début</label>
+                <input type="date" name="date_debut" class="form-control" value="{{ date_debut }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Date fin</label>
+                <input type="date" name="date_fin" class="form-control" value="{{ date_fin }}">
+            </div>
+           <div class="col-md-2">
+                <label class="form-label">Année</label>
+                <select name="annee" class="form-select">
+                    <option value="">Toutes</option>
+                    {% for an in annees_list %}
+                        <option value="{{ an }}" {% if annee == an|stringformat:"s" %}selected{% endif %}>{{ an }}</option>
+                    {% endfor %}
+                    <option value="{{ annee_precedente }}" {% if annee == annee_precedente|stringformat:"s" %}selected{% endif %}>{{ annee_precedente }}</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Mois</label>
+                <select name="mois" class="form-select">
+                    <option value="">Tous</option>
+                    <option value="1">Janvier</option>
+                    <option value="2">Février</option>
+                    <option value="3">Mars</option>
+                    <option value="4">Avril</option>
+                    <option value="5">Mai</option>
+                    <option value="6">Juin</option>
+                    <option value="7">Juillet</option>
+                    <option value="8">Août</option>
+                    <option value="9">Septembre</option>
+                    <option value="10">Octobre</option>
+                    <option value="11">Novembre</option>
+                    <option value="12">Décembre</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <button type="submit" class="btn btn-primary w-100 btn-custom">
+                    <i class="bi bi-search"></i> Filtrer
+                </button>
+                <a href="{% url 'bilan' %}" class="btn btn-secondary w-100 ms-2 btn-custom">
+                    <i class="bi bi-arrow-repeat"></i> Reset
+                </a>
+            </div>
+        </form>
+        
+        {% if filtre_actif %}
+        <div class="filter-active">
+            <i class="bi bi-funnel-fill"></i> Filtre actif : 
+            {% if filtre_actif == 'periode' %}
+                Période du {{ valeur_filtre }}
+            {% elif filtre_actif == 'annee' %}
+                Année {{ valeur_filtre }}
+            {% else %}
+                Mois sélectionné
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Carte total écran -->
+    <div class="stats-card no-print">
+        <h4>Total général des dépenses</h4>
+        <div class="total">{{ total_general|floatformat:0 }} FCFA</div>
+    </div>
+    
+    <!-- Tableau des dépenses par service -->
+    <div class="table-container">
+        <table class="custom-table">
+            <thead>
+                <tr>
+                    <th>Service</th>
+                    <th>Nombre</th>
+                    <th>Montant (FCFA)</th>
+                    <th>Pourcentage</th>
+                    <th>Répartition</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for service in stats_par_service %}
+                <tr>
+                    <td><span class="badge-service">{{ service.label }}</span></td>
+                    <td>{{ service.nombre }}</td>
+                    <td class="amount">{{ service.total|floatformat:0 }}</td>
+                    <td>{{ service.pourcentage|floatformat:1 }}%</td>
+                    <td style="width: 200px;">
+                        <div class="progress-bar-custom">
+                            <div class="progress-fill" style="width: {{ service.pourcentage }}%;"></div>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center">Aucune dépense enregistrée</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot style="background: #f8f9fa; font-weight: bold;">
+                <tr>
+                    <td><strong>TOTAL</strong></td>
+                    <td><strong><!--{{ stats_par_service_par_depende|length }}--></strong></td>
+                    <td><strong>{{ total_general|floatformat:0 }} FCFA</strong></td>
+                    <td><strong>100%</strong></td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+    
+    <!-- Pied de page pour l'impression avec signature -->
+    <div class="print-footer">
+        <hr>
+        <div class="signature-line">
+            <div class="signature">
+                <div class="signature-dash">_________________________</div>
+                <div>Signature du responsable</div>
+            </div>
+            <div class="signature">
+                <div class="signature-dash">_________________________</div>
+                <div>Cachet de l'établissement</div>
+            </div>
+        </div>
+        <div style="text-align: center; margin-top: 10px; font-size: 8pt;">
+            Document généré par {{ user.username }} - Clique Alkhoufra
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -35,6 +35,7 @@
         @keyframes slideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
         
         @media print { .sidebar, .no-print { display: none !important; } .content { margin: 0 !important; padding: 0 !important; width: 100% !important; } }
+        
     </style>
 </head>
 <body>
@@ -43,13 +44,14 @@
     <!-- SIDEBAR - UNIQUEMENT POUR UTILISATEUR CONNECTE -->
     <div class="sidebar">
         <div class="sidebar-logo">
-            <img src="{% static 'depenses/images/logo.jpg' %}" alt="Logo">
+            <img src="{% static 'depenses/images/logo1.jpg' %}" alt="Logo">
             <h5>Clique Alkhoufra</h5>
             <small>{{ user.username }}</small>
         </div>
         <nav>
             <a href="{% url 'dashboard' %}"><i class="bi bi-speedometer2"></i> Tableau de bord</a>
             <a href="{% url 'ajouter_depense' %}"><i class="bi bi-plus-circle"></i> Ajouter dépense</a>
+            <a href="{% url 'bilan' %}"><i class="bi bi-pie-chart"></i> Bilan</a>
             <a href="{% url 'liste_depenses' %}"><i class="bi bi-list-ul"></i> Liste des dépenses</a>
             <a href="{% url 'depenses_journalieres' %}"><i class="bi bi-calendar-day"></i> Dépenses journalières</a>
             <a href="{% url 'depenses_mensuelles' %}"><i class="bi bi-calendar-month"></i> Dépenses mensuelles</a>
@@ -64,7 +66,9 @@
             <h1>Gestion des Dépenses</h1>
         </div>
         {% bootstrap_messages %}
-        {% block content %}{% endblock %}
+        {% block content %}
+        
+        {% endblock %}
     </div>
 {% else %}
     <!-- CONTENU PUBLIC - AUCUNE SIDEBAR -->

@@ -18,14 +18,7 @@ from reportlab.lib.enums import TA_CENTER
 import io
 from django.contrib.admin.views.decorators import staff_member_required
 
-
-def home(request):
-    """Page d'accueil publique"""
-    return render(request, 'depenses/home.html')
-
-
 # Authentification
-
 @staff_member_required
 def register_view(request):
     if request.method == 'POST':
@@ -64,7 +57,7 @@ def login_view(request):
 def logout_view(request):
     logout(request)
     messages.info(request, "Vous avez été déconnecté.")
-    return redirect('home') 
+    return redirect('login') 
 
 # Vues principales
 @login_required
@@ -143,35 +136,90 @@ def liste_depenses(request):
     else:
         form = DepenseForm(initial={'date': timezone.now().date()})
     
-    # Récupérer les paramètres de filtrage
-    date_filter = request.GET.get('date')
-    month_filter = request.GET.get('month')
+    # Récupérer le terme de recherche
+    recherche = request.GET.get('recherche', '')
     
     # Base de requête : dépenses de l'utilisateur connecté
     depenses = Depense.objects.filter(nom_utilisateur=request.user)
     
-    filtre_actif = None
-    valeur_filtre = None
-    
-    # Application des filtres
-    if date_filter:
-        try:
-            date_obj = datetime.strptime(date_filter, '%Y-%m-%d').date()
-            depenses = depenses.filter(date=date_obj)
-            filtre_actif = 'date'
-            valeur_filtre = datetime.strptime(date_filter, '%Y-%m-%d').strftime('%d/%m/%Y')
-        except ValueError:
-            pass
-    elif month_filter:
-        try:
-            year, month = map(int, month_filter.split('-'))
-            depenses = depenses.filter(date__year=year, date__month=month)
-            filtre_actif = 'month'
-            mois_fr = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 
-                       'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre']
-            valeur_filtre = f"{mois_fr[month-1]} {year}"
-        except (ValueError, IndexError):
-            pass
+    # Appliquer la recherche si présente
+    recherche_value = ''
+    if recherche:
+        recherche_value = recherche
+        recherche_lower = recherche.lower().strip()
+        
+        # 1. Recherche dans les services (partielle) - avec les NOUVEAUX services
+        service_trouve = None
+        for service_code, service_label in Depense.SERVICES:
+            if recherche_lower in service_label.lower() or recherche_lower in service_code.lower():
+                service_trouve = service_code
+                break
+        
+        # 2. Recherche par synonymes - MIS À JOUR avec les nouveaux services
+        if not service_trouve:
+            synonymes = {
+                # Services médicaux
+                'clinique': 'SERVICE_CLINIQUE',
+                'service clinique': 'SERVICE_CLINIQUE',
+                'labo': 'LABORATOIRE',
+                'laboratoire': 'LABORATOIRE',
+                'chirurgie': 'CHIRURGIE_INFIRMERIE',
+                'infirmerie': 'CHIRURGIE_INFIRMERIE',
+                
+                # Services généraux
+                'carburant': 'CARBURANT',
+                'essence': 'CARBURANT',
+                'maintenance': 'MAINTENANCE',
+                'réparation': 'MAINTENANCE',
+                'location': 'LOCATION',
+                'locataire': 'LOCATION',
+                'campus': 'CAMPUS_MEDECIN',
+                'médecin': 'CAMPUS_MEDECIN',
+                'taxe': 'TAXES',
+                'impôt': 'TAXES',
+                'salaire': 'SALAIRE',
+                'paie': 'SALAIRE',
+                'réception': 'RECEPTION',
+                'accueil': 'RECEPTION',
+                'hygiène': 'HYGIENE',
+                'nettoyage': 'HYGIENE',
+                'autre': 'AUTRES',
+                'divers': 'AUTRES',
+                'diver': 'AUTRES',
+            }
+            for syn, code in synonymes.items():
+                if syn in recherche_lower:
+                    service_trouve = code
+                    break
+        
+        if service_trouve:
+            # Recherche par service
+            depenses = depenses.filter(service=service_trouve)
+        else:
+            # 3. Tenter d'interpréter comme date (JJ/MM/AAAA)
+            try:
+                date_obj = datetime.strptime(recherche, '%d/%m/%Y').date()
+                depenses = depenses.filter(date=date_obj)
+            except ValueError:
+                # 4. Tenter d'interpréter comme mois (MM/AAAA)
+                try:
+                    if '/' in recherche:
+                        parties = recherche.split('/')
+                        if len(parties) == 2:
+                            mois = int(parties[0])
+                            annee = int(parties[1])
+                            depenses = depenses.filter(date__year=annee, date__month=mois)
+                        else:
+                            raise ValueError
+                    else:
+                        raise ValueError
+                except:
+                    # 5. Recherche par texte dans nom, motif, remarque
+                    depenses = depenses.filter(
+                        Q(nom_prenom__icontains=recherche) |
+                        Q(motif_depense__icontains=recherche) |
+                        Q(remarque__icontains=recherche)
+                    )
     
     # Calcul du total
     total = depenses.aggregate(Sum('montant'))['montant__sum'] or 0
@@ -180,10 +228,7 @@ def liste_depenses(request):
     context = {
         'depenses': depenses,
         'total': total,
-        'filtre_actif': filtre_actif,
-        'valeur_filtre': valeur_filtre,
-        'date_filter': date_filter,
-        'month_filter': month_filter,
+        'recherche_value': recherche_value,
         'form': form,
         'date_aujourdhui': timezone.now().date(),
     }
@@ -380,6 +425,7 @@ def download_justificatif(request, pk):
 
 @login_required
 def view_justificatif(request, pk):
+
     """Afficher le justificatif (pour les images/PDF)"""
     depense = get_object_or_404(Depense, pk=pk, nom_utilisateur=request.user)
     
@@ -388,3 +434,99 @@ def view_justificatif(request, pk):
     else:
         messages.warning(request, "Aucun justificatif disponible")
         return redirect('liste_depenses')
+    
+@login_required
+def bilan(request):
+    """Page de bilan des dépenses par service"""
+    from django.db.models import Sum, Count
+    from datetime import datetime
+    
+    # Récupérer les paramètres de filtrage
+    date_debut = request.GET.get('date_debut', '')
+    date_fin = request.GET.get('date_fin', '')
+    annee = request.GET.get('annee', '')
+    mois = request.GET.get('mois', '')
+    
+    # Base de requête
+    depenses = Depense.objects.filter(nom_utilisateur=request.user)
+    
+    # Récupérer les années disponibles dans la base de données
+    annees_disponibles = depenses.dates('date', 'year').values_list('date__year', flat=True).distinct()
+    annees_list = sorted(set([int(a) for a in annees_disponibles]))
+    
+    # Si aucune année trouvée, ajouter l'année en cours
+    if not annees_list:
+        annees_list = [timezone.now().year]
+    
+    # Filtres
+    filtre_actif = None
+    valeur_filtre = ''
+    
+    if date_debut and date_fin:
+        try:
+            debut = datetime.strptime(date_debut, '%Y-%m-%d').date()
+            fin = datetime.strptime(date_fin, '%Y-%m-%d').date()
+            depenses = depenses.filter(date__range=[debut, fin])
+            filtre_actif = 'periode'
+            valeur_filtre = f"{date_debut} au {date_fin}"
+        except ValueError:
+            pass
+    elif annee:
+        try:
+            depenses = depenses.filter(date__year=int(annee))
+            filtre_actif = 'annee'
+            valeur_filtre = annee
+        except ValueError:
+            pass
+    
+    if mois:
+        try:
+            mois_int = int(mois)
+            if filtre_actif == 'annee':
+                depenses = depenses.filter(date__month=mois_int)
+                valeur_filtre = f"{mois}/{valeur_filtre}"
+            else:
+                depenses = depenses.filter(date__month=mois_int)
+                filtre_actif = 'mois'
+                valeur_filtre = mois
+        except ValueError:
+            pass
+    
+    # Statistiques par service
+    stats_par_service = []
+    total_general = depenses.aggregate(Sum('montant'))['montant__sum'] or 0
+    
+    for service_code, service_label in Depense.SERVICES:
+        depenses_service = depenses.filter(service=service_code)
+        total_service = depenses_service.aggregate(Sum('montant'))['montant__sum'] or 0
+        nombre_service = depenses_service.count()
+        
+        pourcentage = (total_service / total_general * 100) if total_general > 0 else 0
+        
+        if total_service > 0:
+            stats_par_service.append({
+                'code': service_code,
+                'label': service_label,
+                'total': total_service,
+                'nombre': nombre_service,
+                'pourcentage': pourcentage,
+            })
+    
+    stats_par_service.sort(key=lambda x: x['total'], reverse=True)
+    top_depenses = depenses.order_by('-montant')[:5]
+    
+    context = {
+        'stats_par_service': stats_par_service,
+        'total_general': total_general,
+        'top_depenses': top_depenses,
+        'date_debut': date_debut,
+        'date_fin': date_fin,
+        'annee': annee,
+        'mois': mois,
+        'filtre_actif': filtre_actif,
+        'valeur_filtre': valeur_filtre,
+        'annee_actuelle': timezone.now().year,
+        'annee_precedente': timezone.now().year - 1,
+        'annees_list': annees_list,  # Ajout des années dynamiques
+    }
+    return render(request, 'depenses/bilan.html', context)
