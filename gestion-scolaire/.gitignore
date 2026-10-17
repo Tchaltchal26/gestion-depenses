@@ -1,0 +1,11 @@
+# Ne jamais versionner les secrets de l'editeur ni les registres commerciaux
+*.pem
+registre_licences.db
+*.db
+*.sglic
+*.sgreq
+*.sgrev
+__pycache__/
+.pytest_cache/
+*.xlsm
+*.xlsx

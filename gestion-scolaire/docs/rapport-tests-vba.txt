@@ -1,0 +1,20 @@
+RAPPORT DE TESTS SG 0.1.0 - 2026-10-17 10:04:23
+[TEST] Utilitaires termine (7.0 s)
+[TEST] CoucheDonnees termine (7.0 s)
+[TEST] Securite termine (15.0 s)
+[TEST] Permissions termine (22.0 s)
+[TEST] Isolation termine (24.0 s)
+[TEST] Annees termine (14.0 s)
+[TEST] Structure termine (16.0 s)
+[TEST] Eleves termine (15.0 s)
+[TEST] Inscriptions termine (28.0 s)
+[TEST] Reinscription termine (20.0 s)
+[TEST] Transfert termine (22.0 s)
+[TEST] Audit termine (36.0 s)
+[TEST] Sauvegarde termine (17.0 s)
+[TEST] Rapports termine (33.0 s)
+[TEST] Licences termine (118.0 s)
+[TEST] Schema termine (8.0 s)
+VERIFICATIONS : 235 | REUSSIES : 235 | ECHECS : 0
+Duree d'execution (LibreOffice) : 409.7 s
+CONTROLE CROISE DEMANDE VBA -> PYTHON : OK

@@ -1,0 +1,10 @@
+' Code du module ThisWorkbook (insere par installer/Installer-SG.ps1).
+Option Explicit
+
+Private Sub Workbook_Open()
+    SG_AuOuverture
+End Sub
+
+Private Sub Workbook_BeforeClose(Cancel As Boolean)
+    SG_AFermeture
+End Sub
