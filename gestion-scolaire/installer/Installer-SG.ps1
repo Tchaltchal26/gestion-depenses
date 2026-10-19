@@ -42,7 +42,8 @@ $excel.Visible = $true
 $excel.DisplayAlerts = $false
 try {
     $wb = $excel.Workbooks.Add()
-    try { $null = $wb.VBProject.VBComponents.Count }
+    # Sans l'acces approuve, VBProject vaut $null (aucune exception) : tester explicitement.
+    try { if ($null -eq $wb.VBProject.VBComponents) { throw 'VBProject indisponible' } }
     catch { throw "Acces au projet VBA refuse : activer 'Acces approuve au modele d'objet du projet VBA' (voir l'aide du script)." }
 
     $exclus = @()
@@ -75,8 +76,8 @@ try {
         Write-Host "Rapport : $chemin"
     }
     else {
-        $excel.Run("'$($wb.Name)'!SG_Installer", $Mode)
-        if ($Demo) { Write-Host ($excel.Run("'$($wb.Name)'!SG_ChargerDemo")) }
+        # La demonstration est chargee par SG_Installer lui-meme (session administrateur).
+        $excel.Run("'$($wb.Name)'!SG_Installer", $Mode, [bool]$Demo)
     }
     $wb.Save()
     Write-Host "Classeur cree : $Destination"

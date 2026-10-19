@@ -438,7 +438,9 @@ End Sub
 Public Sub SG_JournalVerifier()
     Dim r As String, ancre As String
     On Error GoTo erreur
-    Sec_Exiger "*", "AUDIT", NIV_LECTURE
+    ' Droit global (administrateurs) ou lecture du journal de l'etablissement
+    ' courant (directeur, auditeur) : le bouton est sur l'ecran JOURNAL.
+    If Sec_Niveau("*", "AUDIT") < NIV_LECTURE Then Sec_Exiger EtabCourant(), "AUDIT", NIV_LECTURE
     ancre = InputBox("Empreinte d'ancre externe a controler (laisser vide pour verifier la chaine seule) :", "SG - Integrite du journal")
     r = Audit_Verifier(ancre)
     If Left$(r, 2) = "OK" Then
@@ -777,9 +779,13 @@ End Sub
 '-------------------------------------------------------------------------------
 ' Installation (appelee par installer/Installer-SG.ps1 ou manuellement)
 '-------------------------------------------------------------------------------
-Public Sub SG_Installer(Optional ByVal mode As Variant)
+' avecDemo : charge la demonstration dans la MEME execution que la connexion de
+' l'administrateur. La creation du formulaire par code reinitialise le projet
+' VBA a la fin de la macro : la session serait perdue pour un appel separe.
+Public Sub SG_Installer(Optional ByVal mode As Variant, Optional ByVal avecDemo As Variant)
     ' Valeurs par defaut (IsMissing : forme compatible Excel et LibreOffice).
     If IsMissing(mode) Then mode = "INDEPENDANT"
+    If IsMissing(avecDemo) Then avecDemo = False
     Dim login As String, mdp As String, nom As String
     SG_InitialiserBase mode, 1000
     SG_ConstruireInterface
@@ -787,12 +793,29 @@ Public Sub SG_Installer(Optional ByVal mode As Variant)
     SG_CreerFormulaireConnexion
     If Err.Number <> 0 Then MsgBox "Formulaire de connexion non cree (acces au projet VBA refuse). La connexion utilisera une boite de saisie.", vbExclamation, "SG"
     On Error GoTo 0
-    If DAL_Count("T_Utilisateurs", RecNew()) = 0 Then
-        login = InputBox("Identifiant de l'administrateur technique :", "SG - Installation", "admin")
-        nom = InputBox("Nom complet de l'administrateur :", "SG - Installation")
+    ' Saisie redemandee tant qu'elle est refusee : une faute de frappe ne doit
+    ' pas interrompre l'installation (Annuler sur l'identifiant abandonne).
+    login = "admin"
+    Do While DAL_Count("T_Utilisateurs", RecNew()) = 0
+        login = InputBox("Identifiant de l'administrateur technique :", "SG - Installation", login)
+        If Len(login) = 0 Then
+            MsgBox "Installation interrompue : aucun administrateur cree. Relancer SG_Installer.", vbExclamation, "SG"
+            Exit Sub
+        End If
+        nom = InputBox("Nom complet de l'administrateur :", "SG - Installation", nom)
         mdp = InputBox("Mot de passe initial (8 caracteres, lettres et chiffres). A changer apres installation :", "SG - Installation")
+        On Error Resume Next
         Sec_InitialiserAdministrateur login, nom, mdp
-        Sec_Connexion login, mdp
+        If Err.Number <> 0 Then MsgBox Err.Description, vbExclamation, "SG - Installation"
+        On Error GoTo 0
+    Loop
+    If Len(mdp) > 0 Then Sec_Connexion login, mdp
+    If CBool(avecDemo) Then
+        If Sec_EstConnecte() Then
+            MsgBox SG_ChargerDemo(), vbInformation, "SG - Demonstration"
+        Else
+            MsgBox "Demonstration non chargee : se connecter avec l'administrateur puis lancer SG_ChargerDemo.", vbExclamation, "SG"
+        End If
     End If
     ProtegerDonnees
     AfficherBandeau
