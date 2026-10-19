@@ -12,10 +12,12 @@ dépôt dédié avant la phase 5 (développement backend).
 | 2 | Cahier des charges complet | Non commencé (dépend des réponses aux questions bloquantes) |
 | 3 | Architecture détaillée, modèle de données, contrats d'API | Non commencé (ébauche en phase 1) |
 | 4 | Maquettes client / chauffeur / admin | Non commencé |
-| 5 → 10 | Développement, SMS, tests, déploiement | Non commencé |
+| 5 | Backend + tests automatisés | **Prototype fonctionnel** : 54 tests passent ; SMS et notifications encore simulés — voir [backend/README.md](backend/README.md) |
+| 6 → 10 | Applications, admin, SMS réel, tests terrain, déploiement | Non commencé |
 
-**Aucun code n'a encore été écrit. Rien n'est opérationnel.** Les chiffres de budget sont
-des estimations avec hypothèses explicites, pas des devis.
+Le backend existe sous forme de prototype testé, mais **rien n'est encore en service réel** :
+aucun SMS réel, aucune application mobile, données de repères fictives. Les chiffres de budget
+sont des estimations avec hypothèses explicites, pas des devis.
 
 ## Documents de la phase 1
 

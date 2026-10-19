@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Simulateur SMS</title>
+<style>
+  :root { --bg:#f4f1ea; --card:#fff; --ink:#1d1d1b; --muted:#6b675f; --accent:#b4531f; --in:#e9e4d8; --out:#1f6f5c; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui, sans-serif; background:var(--bg); color:var(--ink); }
+  header { padding:16px; border-bottom:1px solid #ddd6c8; }
+  header h1 { margin:0 0 4px; font-size:20px; }
+  header p { margin:0; color:var(--muted); font-size:14px; }
+  .warn { background:#fff3cd; padding:8px 16px; font-size:13px; }
+  main { display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:16px; padding:16px; }
+  .card { background:var(--card); border-radius:12px; padding:12px; box-shadow:0 1px 3px rgba(0,0,0,.08); display:flex; flex-direction:column; }
+  .card h2 { font-size:16px; margin:0 0 8px; }
+  label { font-size:12px; color:var(--muted); }
+  input, select, button { font:inherit; padding:8px; border-radius:8px; border:1px solid #ccc4b4; width:100%; }
+  button { background:var(--accent); color:#fff; border:none; cursor:pointer; margin-top:6px; }
+  button.secondary { background:#555; }
+  .thread { flex:1; min-height:220px; max-height:340px; overflow-y:auto; background:#faf8f3; border-radius:8px; padding:8px; margin:8px 0; }
+  .msg { padding:6px 10px; border-radius:10px; margin:4px 0; max-width:90%; font-size:14px; white-space:pre-wrap; }
+  .msg.me { background:var(--out); color:#fff; margin-left:auto; }
+  .msg.srv { background:var(--in); }
+  .row { display:flex; gap:6px; } .row > * { flex:1; }
+  table { width:100%; font-size:13px; border-collapse:collapse; } td, th { text-align:left; padding:4px; border-bottom:1px solid #eee; }
+  .hint { font-size:12px; color:var(--muted); margin:4px 0 0; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Simulateur de téléphones — mode SMS</h1>
+  <p>Chaque carte représente un téléphone sans Internet qui envoie des SMS au numéro de la plateforme.</p>
+</header>
+<div class="warn">Outil de développement : aucun SMS réel n'est envoyé. Les repères et les prix sont des données fictives de test.</div>
+<main id="phones"></main>
+<main>
+  <div class="card">
+    <h2>Ajouter un chauffeur (déjà validé)</h2>
+    <div class="row"><input id="dPhone" placeholder="Numéro, ex. 66000010"><input id="dName" placeholder="Nom"></div>
+    <select id="dType"><option value="clando">Clando</option><option value="rakcha">Rakcha</option><option value="taxi">Taxi</option></select>
+    <button onclick="addDriver()">Créer le chauffeur et ouvrir son téléphone</button>
+    <p class="hint">Ensuite, sur son téléphone : <b>DISPO grand marche</b></p>
+  </div>
+  <div class="card">
+    <h2>Ajouter un client</h2>
+    <input id="cPhone" placeholder="Numéro, ex. 66000001">
+    <button onclick="addPhone(document.getElementById('cPhone').value, 'Client')">Ouvrir son téléphone</button>
+    <p class="hint">Exemples : <b>CLANDO grand marche &gt; hopital</b> · <b>TAXI marche</b> (choix multiple) · <b>ANNULER</b></p>
+    <button class="secondary" onclick="tick()">Faire avancer le répartiteur (expirations, vague suivante)</button>
+  </div>
+  <div class="card">
+    <h2>Dernières courses</h2>
+    <table><thead><tr><th>Code</th><th>Statut</th><th>Type</th><th>Départ</th><th>Prix</th></tr></thead><tbody id="rides"></tbody></table>
+  </div>
+</main>
+<script>
+const phones = [];       // { number, label, mine: [{text, at}] }
+let outbox = [];
+
+function norm(n) { n = n.replace(/[\s.\-]/g, ''); if (n.startsWith('+')) return n; if (n.startsWith('00')) return '+' + n.slice(2); return n.length === 8 ? '+235' + n : '+' + n; }
+function esc(s) { return s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
+
+function addPhone(raw, label) {
+  if (!raw) return;
+  const number = norm(raw);
+  if (phones.find(p => p.number === number)) return;
+  phones.push({ number, label, mine: [] });
+  render();
+}
+
+async function addDriver() {
+  const phone = document.getElementById('dPhone').value, name = document.getElementById('dName').value || 'Chauffeur';
+  const type = document.getElementById('dType').value;
+  const r = await fetch('/dev/driver', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phone, name, type }) });
+  if (!r.ok) return alert('Erreur : ' + (await r.text()));
+  addPhone(phone, `Chauffeur ${name} (${type})`);
+}
+
+async function send(i) {
+  const p = phones[i], input = document.getElementById('in' + i), text = input.value.trim();
+  if (!text) return;
+  p.mine.push({ text, at: Date.now() });
+  input.value = '';
+  await fetch('/dev/sms', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ from: p.number, text }) });
+  await refresh();
+}
+
+async function tick() { await fetch('/dev/tick', { method: 'POST' }); await refresh(); }
+
+function render() {
+  document.getElementById('phones').innerHTML = phones.map((p, i) => {
+    const received = outbox.map((m, k) => ({ ...m, k })).filter(m => m.to === p.number);
+    // Ordre approximatif : messages envoyés puis reçus entrelacés par position d'arrivée.
+    const items = [...p.mine.map(m => ({ me: true, text: m.text, order: m.order ?? (m.order = m.at) })),
+                   ...received.map(m => ({ me: false, text: m.body, order: m.order ?? (outboxTimes[m.k] ??= Date.now()) }))]
+      .sort((a, b) => a.order - b.order);
+    return `<div class="card"><h2>${esc(p.label)} — ${p.number}</h2>
+      <div class="thread" id="t${i}">${items.map(m => `<div class="msg ${m.me ? 'me' : 'srv'}">${esc(m.text)}</div>`).join('')}</div>
+      <div class="row"><input id="in${i}" placeholder="Écrire un SMS…" onkeydown="if(event.key==='Enter')send(${i})"><button style="flex:0 0 90px" onclick="send(${i})">Envoyer</button></div></div>`;
+  }).join('');
+  phones.forEach((_, i) => { const t = document.getElementById('t' + i); t.scrollTop = t.scrollHeight; });
+}
+const outboxTimes = [];
+
+async function refresh() {
+  outbox = await (await fetch('/dev/outbox')).json();
+  const rides = await (await fetch('/dev/rides')).json();
+  document.getElementById('rides').innerHTML = rides.map(r =>
+    `<tr><td>${r.public_code}</td><td>${r.status}</td><td>${r.transport_type}</td><td>${esc(r.pickup_text || '')}</td><td>${r.price_quoted_xaf ?? '—'}</td></tr>`).join('');
+  render();
+}
+setInterval(refresh, 2000);
+refresh();
+</script>
+</body>
+</html>
