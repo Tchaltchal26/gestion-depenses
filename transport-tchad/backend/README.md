@@ -75,8 +75,24 @@ Les tests effacent et recréent la base `transport_test`. Créez-la une fois :
 
 ```powershell
 docker compose exec db psql -U transport -c "CREATE DATABASE transport_test"
+$env:TEST_DATABASE_URL="postgres://transport:transport@localhost:5433/transport_test"
 npm test
 ```
+
+## Problèmes fréquents
+
+**« authentification par mot de passe échouée pour l'utilisateur transport »**
+Un autre PostgreSQL (installé directement sur Windows) occupe le port 5432 et reçoit la connexion
+à la place de celui de Docker. Depuis cette version, Docker utilise le port **5433** :
+
+```powershell
+docker compose down
+git pull
+```
+Puis dans le fichier `.env`, remplacez `localhost:5432` par `localhost:5433`
+(ou supprimez `.env` et relancez `npm run init:env`), et reprenez à `npm run db:up`.
+
+**« connection refused »** : la base démarre encore ; attendez 30 secondes et relancez.
 
 ## Structure
 

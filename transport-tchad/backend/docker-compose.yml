@@ -7,7 +7,7 @@ services:
       POSTGRES_PASSWORD: transport
       POSTGRES_DB: transport
     ports:
-      - "5432:5432"
+      - "5433:5432"   # 5433 côté PC : évite le conflit avec un PostgreSQL déjà installé sur Windows
     volumes:
       - pgdata:/var/lib/postgresql/data
 volumes:

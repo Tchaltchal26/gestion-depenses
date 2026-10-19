@@ -10,7 +10,7 @@ if (fs.existsSync(target)) {
 const key = () => randomBytes(32).toString('base64');
 fs.writeFileSync(target, [
   'PORT=3000',
-  'DATABASE_URL=postgres://transport:transport@localhost:5432/transport',
+  'DATABASE_URL=postgres://transport:transport@localhost:5433/transport',
   `PHONE_ENC_KEY=${key()}`,
   `PHONE_HASH_KEY=${key()}`,
   `JWT_SECRET=${randomBytes(32).toString('hex')}`,
