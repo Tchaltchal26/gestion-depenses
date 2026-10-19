@@ -37,14 +37,14 @@
 <main>
   <div class="card">
     <h2>Ajouter un chauffeur (déjà validé)</h2>
-    <div class="row"><input id="dPhone" placeholder="Numéro, ex. 66000010"><input id="dName" placeholder="Nom"></div>
+    <div class="row"><input id="dPhone" autocomplete="off" placeholder="Numéro, ex. 66000010"><input id="dName" autocomplete="off" placeholder="Nom"></div>
     <select id="dType"><option value="clando">Clando</option><option value="rakcha">Rakcha</option><option value="taxi">Taxi</option></select>
     <button onclick="addDriver()">Créer le chauffeur et ouvrir son téléphone</button>
     <p class="hint">Ensuite, sur son téléphone : <b>DISPO grand marche</b></p>
   </div>
   <div class="card">
     <h2>Ajouter un client</h2>
-    <input id="cPhone" placeholder="Numéro, ex. 66000001">
+    <input id="cPhone" autocomplete="off" placeholder="Numéro, ex. 66000001">
     <button onclick="addPhone(document.getElementById('cPhone').value, 'Client')">Ouvrir son téléphone</button>
     <p class="hint">Exemples : <b>CLANDO grand marche &gt; hopital</b> · <b>TAXI marche</b> (choix multiple) · <b>ANNULER</b></p>
     <button class="secondary" onclick="tick()">Faire avancer le répartiteur (expirations, vague suivante)</button>
@@ -88,18 +88,35 @@ async function send(i) {
 
 async function tick() { await fetch('/dev/tick', { method: 'POST' }); await refresh(); }
 
+// Les cartes (et leurs zones de saisie) sont créées une seule fois ; le rafraîchissement
+// périodique ne met à jour que le fil des messages, pour ne jamais effacer la saisie en cours.
+function createCard(i) {
+  const p = phones[i];
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `<h2>${esc(p.label)} — ${p.number}</h2>
+    <div class="thread" id="t${i}"></div>
+    <div class="row"><input id="in${i}" placeholder="Écrire un SMS…" autocomplete="off"><button style="flex:0 0 90px">Envoyer</button></div>`;
+  card.querySelector('input').addEventListener('keydown', (e) => { if (e.key === 'Enter') send(i); });
+  card.querySelector('button').addEventListener('click', () => send(i));
+  document.getElementById('phones').appendChild(card);
+}
+
 function render() {
-  document.getElementById('phones').innerHTML = phones.map((p, i) => {
+  phones.forEach((p, i) => {
+    if (!document.getElementById('t' + i)) createCard(i);
     const received = outbox.map((m, k) => ({ ...m, k })).filter(m => m.to === p.number);
-    // Ordre approximatif : messages envoyés puis reçus entrelacés par position d'arrivée.
-    const items = [...p.mine.map(m => ({ me: true, text: m.text, order: m.order ?? (m.order = m.at) })),
-                   ...received.map(m => ({ me: false, text: m.body, order: m.order ?? (outboxTimes[m.k] ??= Date.now()) }))]
+    const items = [...p.mine.map(m => ({ me: true, text: m.text, order: m.at })),
+                   ...received.map(m => ({ me: false, text: m.body, order: (outboxTimes[m.k] ??= Date.now()) }))]
       .sort((a, b) => a.order - b.order);
-    return `<div class="card"><h2>${esc(p.label)} — ${p.number}</h2>
-      <div class="thread" id="t${i}">${items.map(m => `<div class="msg ${m.me ? 'me' : 'srv'}">${esc(m.text)}</div>`).join('')}</div>
-      <div class="row"><input id="in${i}" placeholder="Écrire un SMS…" onkeydown="if(event.key==='Enter')send(${i})"><button style="flex:0 0 90px" onclick="send(${i})">Envoyer</button></div></div>`;
-  }).join('');
-  phones.forEach((_, i) => { const t = document.getElementById('t' + i); t.scrollTop = t.scrollHeight; });
+    const html = items.map(m => `<div class="msg ${m.me ? 'me' : 'srv'}">${esc(m.text)}</div>`).join('');
+    const t = document.getElementById('t' + i);
+    if (t.dataset.html !== html) {
+      t.innerHTML = html;
+      t.dataset.html = html;
+      t.scrollTop = t.scrollHeight;
+    }
+  });
 }
 const outboxTimes = [];
 
