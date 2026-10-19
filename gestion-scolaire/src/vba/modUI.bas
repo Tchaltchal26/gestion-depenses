@@ -52,6 +52,20 @@ Private Sub ProtegerDonnees()
         ' UserInterfaceOnly : le code VBA peut ecrire, l'utilisateur non.
         ws.Protect Password:=MDP_FEUILLES, UserInterfaceOnly:=True
     Next t
+    ' Ecrans : seules les cellules de saisie (deverrouillees) restent modifiables.
+    For Each t In FeuillesInterface()
+        If DAL_TableExiste(CStr(t)) Then ProtegerFeuille ThisWorkbook.Worksheets(CStr(t))
+    Next t
+End Sub
+
+Private Function FeuillesInterface() As Variant
+    FeuillesInterface = Array("ACCUEIL", "FICHE", "ELEVES", "INSCRIPTION", "TABLEAU_BORD", "QUALITE", "JOURNAL", "DOC_CERTIFICAT")
+End Function
+
+' UserInterfaceOnly n'est pas conserve dans le fichier : reappliquer a chaque
+' ouverture (SG_AuOuverture). Les boutons (formes) restent cliquables.
+Private Sub ProtegerFeuille(ws As Object)
+    ws.Protect Password:=MDP_FEUILLES, DrawingObjects:=True, Contents:=True, Scenarios:=True, UserInterfaceOnly:=True
 End Sub
 
 Private Sub UI_Erreur()
@@ -121,6 +135,8 @@ End Function
 Private Sub MettreAJourListeEtabs(etabs As Collection)
     Dim i As Long, liste As String, ws As Object
     Set ws = ThisWorkbook.Worksheets("ACCUEIL")
+    ' La validation ne peut pas etre modifiee sur une feuille protegee.
+    ws.Unprotect MDP_FEUILLES
     liste = ""
     For i = 1 To etabs.Count
         If i > 1 Then liste = liste & ","
@@ -135,6 +151,7 @@ Private Sub MettreAJourListeEtabs(etabs As Collection)
             .Value = ""
         End If
     End With
+    ProtegerFeuille ws
 End Sub
 
 Public Sub SG_ChoisirEtablissement()
@@ -554,6 +571,8 @@ Private Function Feuille(ByVal nom As String) As Object
     If ws Is Nothing Then
         Set ws = ThisWorkbook.Worksheets.Add(Before:=ThisWorkbook.Worksheets(1))
         ws.Name = nom
+    Else
+        ws.Unprotect MDP_FEUILLES   ' reconstruction d'un ecran deja protege
     End If
     ws.Cells.Clear
     Dim s As Object
@@ -603,9 +622,10 @@ Private Sub ChampSaisie(ws As Object, ByVal ligne As Long, ByVal libelle As Stri
         .Interior.Color = IIf(lectureSeule, C_FOND, C_SAISIE)
         .Borders.Color = RGB(200, 200, 200)
         .NumberFormat = "@"
-        .Locked = lectureSeule
     End With
     ws.Range(ws.Cells(ligne, 3), ws.Cells(ligne, 5)).Merge
+    ' Toute la zone fusionnee : seuls les champs de saisie restent modifiables.
+    ws.Range(ws.Cells(ligne, 3), ws.Cells(ligne, 5)).Locked = lectureSeule
     ThisWorkbook.Names.Add Name:=nom, RefersTo:="='" & ws.Name & "'!" & ws.Cells(ligne, 3).Address
 End Sub
 
@@ -712,6 +732,7 @@ Public Sub SG_ConstruireInterface()
     ws.Range("A5:L5").Merge: ThisWorkbook.Names.Add Name:="SG_LICENCE", RefersTo:="='ACCUEIL'!$A$5"
     ws.Range("A7").Value = "Etablissement :"
     ws.Range("B7").Interior.Color = C_SAISIE
+    ws.Range("B7").Locked = False
     ThisWorkbook.Names.Add Name:="SG_ETAB_CODE", RefersTo:="='ACCUEIL'!$B$7"
     ws.Columns("A:L").ColumnWidth = 14
     Bouton ws, "D7", "Choisir", "SG_ChoisirEtablissement", 90
