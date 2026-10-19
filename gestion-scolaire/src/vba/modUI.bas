@@ -27,6 +27,8 @@ Public Sub SG_AuOuverture()
         MsgBox "Classeur non initialise. Lancer l'installation (SG_Installer).", vbExclamation, "SG"
         Exit Sub
     End If
+    ' Classeur de tests (sans interface) : ne rien faire a l'ouverture.
+    If Not DAL_TableExiste("ACCUEIL") Then Exit Sub
     ProtegerDonnees
     Lic_Recharger
     ThisWorkbook.Worksheets("ACCUEIL").Activate
@@ -361,7 +363,7 @@ End Sub
 ' Tableau de bord, qualite, journal
 '-------------------------------------------------------------------------------
 Public Sub SG_TableauBordActualiser()
-    Dim ws As Object, an As String, ind As Variant, tab As Variant, i As Long, j As Long, k As Variant, ligne As Long
+    Dim ws As Object, an As String, ind As Variant, tableau As Variant, i As Long, j As Long, k As Variant, ligne As Long
     On Error GoTo erreur
     Set ws = ThisWorkbook.Worksheets("TABLEAU_BORD")
     an = AnneeParCode(Saisie("T_Annee"))
@@ -374,13 +376,13 @@ Public Sub SG_TableauBordActualiser()
         ws.Cells(ligne, 2).Value = RecGet(ind, CStr(k), 0)
         ligne = ligne + 1
     Next k
-    tab = Rapport_EffectifsClasses(EtabCourant(), an)
-    For i = 0 To UBound(tab, 1)
+    tableau = Rapport_EffectifsClasses(EtabCourant(), an)
+    For i = 0 To UBound(tableau, 1)
         For j = 0 To 6
-            ws.Cells(6 + i, 4 + j).Value = tab(i, j)
+            ws.Cells(6 + i, 4 + j).Value = tableau(i, j)
         Next j
         If i > 0 Then
-            If tab(i, 6) = "SUREFFECTIF" Then ws.Range(ws.Cells(6 + i, 4), ws.Cells(6 + i, 10)).Interior.Color = C_ALERTE
+            If tableau(i, 6) = "SUREFFECTIF" Then ws.Range(ws.Cells(6 + i, 4), ws.Cells(6 + i, 10)).Interior.Color = C_ALERTE
         End If
     Next i
     ws.Range("SG_TB_MAJ").Value = "Calcule le " & NowStamp() & " a partir des donnees sources."

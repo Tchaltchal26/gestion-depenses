@@ -62,11 +62,17 @@ try {
     $wb.SaveAs($Destination, 52)  # 52 = xlOpenXMLWorkbookMacroEnabled
 
     if ($Tests) {
-        $rapport = $excel.Run("'$($wb.Name)'!SG_ExecuterTests", '', '')
+        # Fixtures de licence (cle de TEST jetable) : CLE=base64 -> "cle<31>valeur<30>..."
+        $fixtures = @()
+        Get-Content (Join-Path $PSScriptRoot '..\tools\tests\fixtures-licences.txt') -Encoding UTF8 | Where-Object { $_ -match '^[A-Z_]+=' } | ForEach-Object {
+            $cle, $val = $_ -split '=', 2
+            $fixtures += $cle + [char]31 + [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($val))
+        }
+        $rapport = $excel.Run("'$($wb.Name)'!SG_ExecuterTests", '', ($fixtures -join [char]30))
         $chemin = [IO.Path]::ChangeExtension($Destination, '.rapport-tests.txt')
         [IO.File]::WriteAllText($chemin, $rapport, [Text.Encoding]::UTF8)
         Write-Host $rapport
-        Write-Host "Rapport : $chemin (les tests de licence exigent les fixtures du lanceur Python : voir docs/07)."
+        Write-Host "Rapport : $chemin"
     }
     else {
         $excel.Run("'$($wb.Name)'!SG_Installer", $Mode)

@@ -661,7 +661,7 @@ Private Sub T_Sauvegarde()
 End Sub
 
 Private Sub T_Rapports()
-    Dim cx As Variant, e As String, a As String, z As String, b As String, c As String, ind As Variant, tab As Variant
+    Dim cx As Variant, e As String, a As String, z As String, b As String, c As String, ind As Variant, tableau As Variant
     Dim qc As Collection, i As Long, trouve As Boolean, cert As Variant, cert2 As Variant, lst As Variant, nb As Long
     cx = Contexte("ETB-A")
     e = cx(0): a = cx(1)
@@ -678,9 +678,9 @@ Private Sub T_Rapports()
     VerifierEgal RecGet(ind, "Departs"), 1, "indicateur : departs"
     VerifierEgal RecGet(ind, "Filles"), 1, "indicateur : filles actives"
     VerifierEgal RecGet(ind, "Garcons"), 1, "indicateur : garcons actifs"
-    tab = Rapport_EffectifsClasses(e, a)
-    VerifierEgal UBound(tab, 1), 3, "effectifs : une ligne par classe"
-    VerifierEgal tab(1, 0) & "=" & tab(1, 3), "6EA=2", "effectif de la classe 6EA"
+    tableau = Rapport_EffectifsClasses(e, a)
+    VerifierEgal UBound(tableau, 1), 3, "effectifs : une ligne par classe"
+    VerifierEgal tableau(1, 0) & "=" & tableau(1, 3), "6EA=2", "effectif de la classe 6EA"
     lst = Liste_Classe(e, cx(4))
     VerifierEgal lst(1, 2) & "," & lst(2, 2), "ADJOVI,ZOUMA", "liste de classe triee par nom"
     VerifierEgal QC_Anomalies(e).Count, 2, "controle qualite : seuls les responsables manquants sont signales"

@@ -160,9 +160,19 @@ def main() -> int:
     ap.add_argument("--xlsx", help="Enregistrer le classeur de test (structure + donnees fictives)")
     ap.add_argument("--appel", default="modTests.SG_ExecuterTests")
     ap.add_argument("--filtre", default="", help="Ne lancer que les tests dont le nom contient ce texte")
+    ap.add_argument("--ecrire-fixtures", help="Ecrire des fixtures de licence (pour les tests sous Excel) et quitter")
     args = ap.parse_args()
 
     fixtures = preparer_fixtures()
+    if args.ecrire_fixtures:
+        import base64
+
+        lignes = ["# Fixtures des tests de licence SG (cle RSA de TEST jetable : la cle privee n'a pas ete conservee).",
+                  "# Format : CLE=valeur encodee en base64 (UTF-8). Utilise par installer/Tester-SG.ps1."]
+        lignes += [f"{k}={base64.b64encode(v.encode('utf-8')).decode('ascii')}" for k, v in fixtures.items()]
+        Path(args.ecrire_fixtures).write_text("\n".join(lignes) + "\n", encoding="utf-8")
+        print(f"Fixtures ecrites : {args.ecrire_fixtures}")
+        return 0
     if os.environ.get("SG_FIXTURES_DUMP"):
         import json
 
