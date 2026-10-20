@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Header, HttpCode, Inject, NotFoundException, Post } from '@nestjs/common';
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { AuthService } from '../auth/auth.service';
 import { DbService } from '../db/db.service';
@@ -21,9 +21,11 @@ export class DevController {
     @Inject(SMS_PROVIDER) private readonly sms: FakeSmsProvider,
   ) {}
 
-  @Get() @Header('Content-Type', 'text/html; charset=utf-8')
+  @Get() @Header('Content-Type', 'text/html; charset=utf-8') @Header('Cache-Control', 'no-store')
   page() {
-    return readFileSync(join(__dirname, 'simulateur.html'), 'utf8');
+    // Lit de préférence le fichier source (à jour après un simple « git pull »), sinon la copie compilée.
+    const src = join(process.cwd(), 'src', 'dev', 'simulateur.html');
+    return readFileSync(existsSync(src) ? src : join(__dirname, 'simulateur.html'), 'utf8');
   }
 
   /** Simule un SMS reçu par la passerelle (sans signature : outil local uniquement). */
