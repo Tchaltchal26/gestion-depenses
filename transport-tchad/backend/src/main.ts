@@ -23,6 +23,7 @@ async function bootstrap() {
   app.enableShutdownHooks();
   const port = Number(process.env.PORT ?? 3000);
   await app.listen(port);
-  console.log(`API démarrée sur http://localhost:${port}/v1`);
+  console.log(`API démarrée (adresse technique, pas une page à ouvrir) : http://localhost:${port}/v1`);
+  if (process.env.DEV_TOOLS === '1') console.log(`>>> Simulateur à ouvrir dans le navigateur : http://localhost:${port}/dev`);
 }
 bootstrap();
